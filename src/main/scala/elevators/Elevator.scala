@@ -22,54 +22,84 @@ class Elevator(id: Int) extends Actor with ActorLogging {
       sender ! ElevatorStatus(id, Idle(currentFloor))
     case PickupRequest(passenger: Passenger) =>
       log.debug(s"$id is now moving")
-      context become moveReceive(currentFloor, Set(passenger), Direction.direction(currentFloor, passenger.startFloor))
+      context become moveReceive(currentFloor, Set(), Set(passenger), Direction.direction(currentFloor, passenger.startFloor))
     case Tick =>
-    // just relax and stay idling
+      // just relax and stay idling
       log.debug(s"$id is currently idling and received Tick")
   }
 
-  def moveReceive(currentFloor: Int, targets: Set[Passenger], direction: Direction): Receive = {
+  def moveReceive(currentFloor: Int, inside: Set[Passenger], toPickup: Set[Passenger], direction: Direction): Receive = {
     // what messages can be received if an elevator is idling? -> StatusRequest and PickUpRequests
     case SystemStatusRequest =>
       sender ! ElevatorStatus(id, Moving(currentFloor, direction))
     case PickupRequest(passenger: Passenger) =>
-      context become moveReceive(currentFloor, targets + passenger, direction)
+      context become moveReceive(currentFloor, inside, toPickup + passenger, direction)
     case Tick =>
       // assumption: Our elevator is traveling to the same direction until no targets are left in this direction
       // then change direction (if needed)
 
       // floor of tick is newFloor
       val newFloor = direction.next(currentFloor)
-      log.debug(s"Elevator $id is now on $newFloor with $direction")
+      log.debug(s"Elevator $id is now on $newFloor with $direction and inside $inside and toPickup $toPickup")
       // calculate if the elevator has to do something on the newFloor (collect or release passengers)
-      if (targets.map(passenger => passenger.targetFloor).contains(newFloor) || targets.map(passenger => passenger.startFloor).contains(newFloor)) {
-        // new targets are passengers where the targetFloor is not reached
-        val newTargets = targets.filter(passenger => passenger.targetFloor != newFloor)
+      if (inside.map(passenger => passenger.targetFloor).contains(newFloor) || toPickup.map(passenger => passenger.startFloor).contains(newFloor)) {
 
-        if (newTargets.size != targets.size) {
-          log.debug("left passengers: " + targets.diff(newTargets))
+        // collected passengers
+        val collected = toPickup.filter(passenger => passenger.startFloor == newFloor)
+        if (collected.size > 0) {
+          log.debug(s"joined passengers: $collected")
         }
+        val released = inside.filter(passenger => passenger.targetFloor == newFloor)
+        if (released.size > 0) {
+          log.debug(s"left passengers: $released")
+        }
+
+        val newInside = inside ++ collected -- released
+        val newPickups = toPickup -- collected
+
         // if this is empty, relax and idle
-        if (newTargets.isEmpty) {
+        if (newInside.isEmpty && newPickups.isEmpty) {
           context become idleReceive(newFloor)
         } else {
           log.debug("here should a re-direction be calculated")
           // test if we reached to top or bottom
           val borderFlor = if (direction == Up) {
-            List(targets.map(passenger => passenger.startFloor).max, targets.map(passenger => passenger.targetFloor).max).max
+            calcMax(newInside, newPickups)
           } else {
-            List(targets.map(passenger => passenger.startFloor).min, targets.map(passenger => passenger.targetFloor).min).min
+            calcMin(newInside, newPickups)
           }
-          if (borderFlor == newFloor) {
+          // if the elevator is traveling upstairs, there should no activities above to change direction and vice versa
+          if ((direction == Up && borderFlor <= newFloor) || (direction == Down && borderFlor >= newFloor)) {
             // change direction
-            context become moveReceive(newFloor, newTargets, if (direction == Up) Down else Up)
+            context become moveReceive(newFloor, newInside, newPickups, if (direction == Up) Down else Up)
           } else {
             // keep direction
-            context become moveReceive(newFloor, newTargets, direction)
+            context become moveReceive(newFloor, newInside, newPickups, direction)
           }
         }
       } else {
-        context become moveReceive(newFloor, targets, direction)
+        context become moveReceive(newFloor, inside, toPickup, direction)
       }
+  }
+
+  private def calcMin(inside: Set[Passenger], pickups: Set[Passenger]): Int = {
+    // situation where both are empty can not occur
+    if (inside.isEmpty) {
+      pickups.map(passenger => passenger.startFloor).min
+    } else if (pickups.isEmpty) {
+      inside.map(passenger => passenger.targetFloor).min
+    } else {
+      List(pickups.map(passenger => passenger.startFloor).min, inside.map(passenger => passenger.targetFloor).min).min
+    }
+  }
+
+  private def calcMax(inside: Set[Passenger], pickups: Set[Passenger]): Int = {
+    if (inside.isEmpty) {
+      pickups.map(passenger => passenger.startFloor).max
+    } else if (pickups.isEmpty) {
+      inside.map(passenger => passenger.targetFloor).max
+    } else {
+      List(pickups.map(passenger => passenger.startFloor).max, inside.map(passenger => passenger.targetFloor).max).max
+    }
   }
 }
