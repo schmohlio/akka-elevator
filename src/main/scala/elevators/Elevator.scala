@@ -18,13 +18,16 @@ class Elevator(id: Int) extends Actor with ActorLogging {
   def idleReceive(currentFloor: Int): Receive = {
     // what messages can be received if an elevator is idling? -> StatusRequest and PickUpRequests
     case SystemStatusRequest =>
-      log.info(s"$id is currently idling")
       sender ! ElevatorStatus(id, Idle(currentFloor))
     case PickupRequest(passenger: Passenger) =>
       context become moveReceive(currentFloor, Set(passenger), passenger.travelingDirection)
   }
 
   def moveReceive(currentFloor: Int, targets: Set[Passenger], direction: Direction): Receive = {
-    case _ =>
+    // what messages can be received if an elevator is idling? -> StatusRequest and PickUpRequests
+    case SystemStatusRequest =>
+      sender ! ElevatorStatus(id, Moving(currentFloor, direction))
+    case PickupRequest(passenger: Passenger) =>
+      context become moveReceive(currentFloor, targets + passenger, direction)
   }
 }
