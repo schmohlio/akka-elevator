@@ -22,3 +22,5 @@ this implementation to a (hopefully) more efficient scheduling, which works as f
 
 The last step in this scheduling may be optimized by further development (load of elevator, other passengers, ..)
 
+# TODO
+More tests are needed for this, especially with more elevators and more pickupRequests
