@@ -41,9 +41,9 @@ class ElevatorControlSystem(elevatorAmount: Int) extends Actor with ActorLogging
   override def receive: Receive = {
     case SystemStatusRequest =>
       context.actorOf(ElevatorStatusRetriever.props(sender(), elevators.values.toList, None)) ! SystemStatusRequest
-    case PickupRequest(startFloor: Int, passenger: Passenger) =>
-      context.actorOf(ElevatorStatusRetriever.props(sender(), elevators.values.toList, Option(passenger))) ! SystemStatusRequest
-    case SystemStatusResponse =>
+    case PickupRequest(passenger: Passenger) =>
+      context.actorOf(ElevatorStatusRetriever.props(self, elevators.values.toList, Option(passenger))) ! SystemStatusRequest
+    case PickupStatusResponse =>
       // if we receive a SystemStatusResponse this must be triggered through a PickupRequest
       log.info("yeahyeah")
   }

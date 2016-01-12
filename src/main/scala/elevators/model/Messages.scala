@@ -29,4 +29,4 @@ case class ElevatorStatus(id: Int, direction: ElevatorBehavior)
 
 case class PickupStatusResponse(passenger: Passenger, elevators: List[ElevatorStatus])
 
-case class PickupRequest(startFloor: Int, passenger: Passenger)
+case class PickupRequest(passenger: Passenger)
