@@ -24,4 +24,7 @@ case class SystemStatusResponse(elevators: List[ElevatorStatus])
  * @param id elevator id
  * @param direction current traveling direction
  */
-case class ElevatorStatus(id: Int, direction: Direction)
+case class ElevatorStatus(id: Int, direction: ElevatorBehavior)
+
+
+case class PickupRequest(startFloor: Int, passenger: Passenger)
