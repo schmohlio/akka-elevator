@@ -83,10 +83,20 @@ class ElevatorControlSystem(elevatorAmount: Int) extends Actor with ActorLogging
   }
 }
 
+/**
+ * ElevatorStatusRetriever object for using props method statically.
+ */
 object ElevatorStatusRetriever {
   def props(originalSender: ActorRef, elevators: List[ActorRef], passenger: Option[Passenger]): Props = Props(classOf[ElevatorStatusRetriever], originalSender, elevators, passenger)
 }
 
+/**
+ * Intended to use the akka aggregation pattern, this Actor gathers the status for all Elevators and returns it as list to the original sender.
+ *
+ * @param originalSender the sender, which sends the StatusRequest to the ElevatorControlSystem
+ * @param elevators the Elevators to be asked for status
+ * @param passenger optional Passenger, if not None, indicating if the initial request was a PickupRequest
+ */
 class ElevatorStatusRetriever(originalSender: ActorRef, elevators: List[ActorRef], passenger: Option[Passenger]) extends Actor with ActorLogging {
 
   val results = mutable.ArrayBuffer.empty[ElevatorStatus]
