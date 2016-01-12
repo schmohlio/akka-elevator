@@ -73,6 +73,16 @@ class ElevatorControlSystem(elevatorAmount: Int) extends Actor with ActorLogging
     }
   }
 
+  /**
+   * The method picks the nearest elevator id according to the given floor number. The strategy is:
+   * - make a map of elevatorId -> distance to floor
+   * - sort this map according the distance
+   * - return first elevator id of this sorted lsit
+   *
+   * @param currentFloor floor number to check
+   * @param statusList list of elevator status
+   * @return nearest elevator id
+   */
   private def pickNearest(currentFloor: Int, statusList: List[ElevatorStatus]): Int = {
     statusList.map(status => {
       status.id -> Math.abs(status.direction.currentFloor - currentFloor)
