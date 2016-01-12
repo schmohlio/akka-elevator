@@ -35,9 +35,9 @@ class Elevator(id: Int) extends Actor with ActorLogging {
     case PickupRequest(passenger: Passenger) =>
       context become moveReceive(currentFloor, targets + passenger, direction)
     case Tick =>
-      log.debug(s"Elevator $id is now on $currentFloor with $direction")
-      // floor after this tick is newFloor
+      // floor of tick is newFloor
       val newFloor = direction.next(currentFloor)
+      log.debug(s"Elevator $id is now on $newFloor with $direction")
       // calculate if the elevator has to do something on the newFloor (collect or release passengers)
       if (targets.map(passenger => passenger.targetFloor).contains(newFloor) || targets.map(passenger => passenger.startFloor).contains(newFloor)) {
         // new targets are passengers where the targetFloor is not reached
@@ -46,6 +46,7 @@ class Elevator(id: Int) extends Actor with ActorLogging {
         if (newTargets.isEmpty) {
           context become idleReceive(newFloor)
         } else {
+          log.debug("here should be a re-direction be calculated")
           context become moveReceive(newFloor, newTargets, direction)
         }
       } else {
