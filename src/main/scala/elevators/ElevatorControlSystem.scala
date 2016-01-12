@@ -45,7 +45,7 @@ class ElevatorControlSystem(elevatorAmount: Int) extends Actor with ActorLogging
       context.actorOf(ElevatorStatusRetriever.props(self, elevators.values.toList, Option(passenger))) ! SystemStatusRequest
     case PickupStatusResponse(passenger: Passenger, status: List[ElevatorStatus]) =>
       // if we receive a SystemStatusResponse this must be triggered through a PickupRequest
-      val bestMatch = pickBestElevatorForPickup(status)
+      val bestMatch = pickBestElevatorForPickup(status, passenger)
       log.debug("picked: " + bestMatch)
       elevators.get(bestMatch).get ! PickupRequest(passenger)
     case Tick =>
@@ -53,10 +53,33 @@ class ElevatorControlSystem(elevatorAmount: Int) extends Actor with ActorLogging
   }
 
 
-  // FIXME: currently a random elevator will be picked
-  def pickBestElevatorForPickup(statusList: List[ElevatorStatus]): Int = {
-    import scala.util.Random
-    Random.shuffle(statusList).head.id
+  def pickBestElevatorForPickup(statusList: List[ElevatorStatus], passenger: Passenger): Int = {
+    val startFloor = passenger.startFloor
+    val targetFloor = passenger.targetFloor
+
+    val idlingStates = statusList.filter(state => state.direction.isInstanceOf[Idle])
+    val onTheWayStates = statusList.filter {
+      case ElevatorStatus(id: Int, direction: Moving) =>
+        direction.direction.onTheWay(direction.direction, direction.currentFloor, targetFloor)
+      case _ =>
+        false
+    }
+    if (idlingStates.size > 0) {
+      // pick nearest
+      pickNearest(passenger.startFloor, idlingStates)
+    } else {
+      // TODO not the best solution, should be if(onTheWayStates.size > 0) and else
+      pickNearest(passenger.startFloor, onTheWayStates)
+    }
+  }
+
+  private def pickNearest(currentFloor: Int, statusList: List[ElevatorStatus]): Int = {
+    val tuples = statusList.map(status => {
+      val idle = status.direction.asInstanceOf[Idle]
+      idle.id -> Math.abs(idle.currentFloor - currentFloor)
+    }).toMap
+    val min = tuples.values.min
+    tuples.filter(p => p._2 == min).keys.toList(0)
   }
 }
 

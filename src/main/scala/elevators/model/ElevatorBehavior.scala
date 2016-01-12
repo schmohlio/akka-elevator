@@ -5,6 +5,6 @@ package elevators.model
  */
 sealed trait ElevatorBehavior
 
-case class Idle(currentFloor: Int) extends ElevatorBehavior
+case class Idle(id: Int, currentFloor: Int) extends ElevatorBehavior
 
-case class Moving(currentFloor: Int, direction: Direction) extends ElevatorBehavior
+case class Moving(id: Int, currentFloor: Int, direction: Direction) extends ElevatorBehavior

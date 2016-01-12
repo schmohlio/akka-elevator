@@ -20,7 +20,7 @@ class ElevatorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitS
     "send back a idle behavior if he idles" in {
       val elevatorActor = system.actorOf(Elevator.props(0))
       elevatorActor ! SystemStatusRequest
-      expectMsg(ElevatorStatus(0, Idle(0)))
+      expectMsg(ElevatorStatus(0, Idle(0, 0)))
     }
   }
 
