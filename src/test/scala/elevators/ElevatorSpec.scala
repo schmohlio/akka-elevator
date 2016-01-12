@@ -1,33 +1,25 @@
 package elevators
 
-//import akka.actor.ActorSystem
-//import akka.testkit.{ImplicitSender, TestKit}
-//import com.example.{PingActor, PongActor}
-//import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-//
-//class ElevatorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
-//  with WordSpecLike with Matchers with BeforeAndAfterAll {
-//
-//  def this() = this(ActorSystem("MySpec"))
-//
-//  override def afterAll {
-//    TestKit.shutdownActorSystem(system)
-//  }
-//
-//  "A Ping actor" must {
-//    "send back a ping on a pong" in {
-//      val pingActor = system.actorOf(PingActor.props)
-//      pingActor ! PongActor.PongMessage("pong")
-//      expectMsg(PingActor.PingMessage("ping"))
-//    }
-//  }
-//
-//  "A Pong actor" must {
-//    "send back a pong on a ping" in {
-//      val pongActor = system.actorOf(PongActor.props)
-//      pongActor ! PingActor.PingMessage("ping")
-//      expectMsg(PongActor.PongMessage("pong"))
-//    }
-//  }
-//
-//}
+import akka.actor.ActorSystem
+import akka.testkit.{ImplicitSender, TestKit}
+import elevators.model.{Idle, ElevatorStatus, SystemStatusRequest}
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+
+class ElevatorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
+  with WordSpecLike with Matchers with BeforeAndAfterAll {
+
+  def this() = this(ActorSystem("MySpec"))
+
+  override def afterAll {
+    TestKit.shutdownActorSystem(system)
+  }
+
+  "A Elevator" must {
+    "send back a idle behavior if he idles" in {
+      val elevatorActor = system.actorOf(Elevator.props(0))
+      elevatorActor ! SystemStatusRequest
+      expectMsg(ElevatorStatus(0, Idle(0)))
+    }
+  }
+
+}

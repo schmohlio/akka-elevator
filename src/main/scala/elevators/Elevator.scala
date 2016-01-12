@@ -1,7 +1,7 @@
 package elevators
 
 import akka.actor.{Actor, ActorLogging, Props}
-import elevators.model.{Idle, ElevatorStatus, SystemStatusRequest}
+import elevators.model.{ElevatorStatus, Idle, SystemStatusRequest}
 
 /**
  * @author Johannes Unterstein (unterstein@me.com)
@@ -18,6 +18,7 @@ class Elevator(id: Int) extends Actor with ActorLogging {
   def idleReceive(currentFloor: Int): Receive = {
     // what messages can be received if an elevator is idling?
     case SystemStatusRequest =>
+      log.info(s"$id is currently idling")
       sender ! ElevatorStatus(id, Idle(currentFloor))
   }
 }

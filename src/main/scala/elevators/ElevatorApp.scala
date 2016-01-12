@@ -1,6 +1,7 @@
 package elevators
 
 import akka.actor.ActorSystem
+import elevators.model.SystemStatusRequest
 
 /**
  * @author Johannes Unterstein (unterstein@me.com)
@@ -12,7 +13,7 @@ object ElevatorApp extends App {
   // let´s have fun with 16 elevators
   val elevatorControlSystem = system.actorOf(ElevatorControlSystem.props(16), "elevatorControlSystem")
 
-  elevatorControlSystem ! "ping"
+  elevatorControlSystem ! SystemStatusRequest
 
-  system.awaitTermination()
+//  system.awaitTermination()
 }

@@ -1,6 +1,10 @@
 package elevators
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import elevators.model.{ElevatorStatus, SystemStatusRequest, SystemStatusResponse}
+
+import scala.collection._
+
 
 /**
  * An elevator control system should provide (more or less) the functionality of the following interface:
@@ -28,13 +32,40 @@ object ElevatorControlSystem {
 /**
  * First attempt, we are handling a fixed amount of elevators to control.
  *
- * @param elevatorAmount the number of elevaors in our system
+ * @param elevatorAmount the number of elevators in our system
  */
 class ElevatorControlSystem(elevatorAmount: Int) extends Actor with ActorLogging {
 
-  private val elevators: List[ActorRef] = (0 to elevatorAmount).map(id => context.actorOf(Elevator.props(id))).toList
+  private val elevators: Map[Int, ActorRef] = (0 to elevatorAmount).map(id => id -> context.actorOf(Elevator.props(id))).toMap
 
   override def receive: Receive = {
-    case message: AnyRef => elevators.map(elevator => elevator ! message)
+    case SystemStatusRequest =>
+      context.actorOf(ElevatorStatusRetriever.props(sender(), elevators.values.toList)) ! SystemStatusRequest
   }
 }
+
+object ElevatorStatusRetriever {
+  def props(originalSender: ActorRef, elevators: List[ActorRef]): Props = Props(classOf[ElevatorStatusRetriever], originalSender, elevators)
+}
+
+class ElevatorStatusRetriever(originalSender: ActorRef, elevators: List[ActorRef]) extends Actor with ActorLogging {
+
+  val results = mutable.ArrayBuffer.empty[ElevatorStatus]
+
+  override def receive: Receive = {
+    case SystemStatusRequest =>
+      elevators.map(elevator => elevator ! SystemStatusRequest)
+    case status: ElevatorStatus =>
+      results += status
+      collectStatus()
+  }
+
+  def collectStatus(force: Boolean = false) {
+    if (results.size == elevators.size || force) {
+      originalSender ! SystemStatusResponse(results.toList)
+      context.stop(self)
+    }
+  }
+}
+
+
