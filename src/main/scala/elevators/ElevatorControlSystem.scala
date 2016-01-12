@@ -74,12 +74,10 @@ class ElevatorControlSystem(elevatorAmount: Int) extends Actor with ActorLogging
   }
 
   private def pickNearest(currentFloor: Int, statusList: List[ElevatorStatus]): Int = {
-    val tuples = statusList.map(status => {
+    statusList.map(status => {
       val idle = status.direction.asInstanceOf[Idle]
       idle.id -> Math.abs(idle.currentFloor - currentFloor)
-    }).toMap
-    val min = tuples.values.min
-    tuples.filter(p => p._2 == min).keys.toList(0)
+    }).sortBy(_._2).toList(0)._1
   }
 }
 
