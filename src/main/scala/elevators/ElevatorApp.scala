@@ -13,4 +13,6 @@ object ElevatorApp extends App {
   val elevatorControlSystem = system.actorOf(ElevatorControlSystem.props(16), "elevatorControlSystem")
 
   elevatorControlSystem ! "ping"
+
+  system.awaitTermination()
 }
