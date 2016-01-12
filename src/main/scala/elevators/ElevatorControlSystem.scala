@@ -66,9 +66,10 @@ class ElevatorControlSystem(elevatorAmount: Int) extends Actor with ActorLogging
     if (idlingStates.size > 0) {
       // pick nearest
       pickNearest(passenger.startFloor, idlingStates)
-    } else {
-      // TODO not the best solution, should be if(onTheWayStates.size > 0) and else
+    } else if(onTheWayStates.size > 0) {
       pickNearest(passenger.startFloor, onTheWayStates)
+    } else {
+      pickNearest(passenger.startFloor, statusList)
     }
   }
 
