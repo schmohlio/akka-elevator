@@ -75,8 +75,7 @@ class ElevatorControlSystem(elevatorAmount: Int) extends Actor with ActorLogging
 
   private def pickNearest(currentFloor: Int, statusList: List[ElevatorStatus]): Int = {
     statusList.map(status => {
-      val idle = status.direction.asInstanceOf[Idle]
-      idle.id -> Math.abs(idle.currentFloor - currentFloor)
+      status.id -> Math.abs(status.direction.currentFloor - currentFloor)
     }).sortBy(_._2).toList(0)._1
   }
 }
