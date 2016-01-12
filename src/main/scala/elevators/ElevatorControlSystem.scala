@@ -36,7 +36,7 @@ object ElevatorControlSystem {
  */
 class ElevatorControlSystem(elevatorAmount: Int) extends Actor with ActorLogging {
 
-  private val elevators: Map[Int, ActorRef] = (0 to elevatorAmount).map(id => id -> context.actorOf(Elevator.props(id))).toMap
+  private val elevators: Map[Int, ActorRef] = (1 to elevatorAmount).map(id => id -> context.actorOf(Elevator.props(id))).toMap
 
   override def receive: Receive = {
     case SystemStatusRequest =>
