@@ -4,6 +4,7 @@ import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
 import elevators.model._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import scala.concurrent.duration._
 
 class ElevatorSystemPickupSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
   with WordSpecLike with Matchers with BeforeAndAfterAll {
@@ -23,6 +24,10 @@ class ElevatorSystemPickupSpec(_system: ActorSystem) extends TestKit(_system) wi
         i =>
           elevatorControlSysstemActor ! Tick
       }
+      elevatorControlSysstemActor ! SystemStatusRequest
+      val answer = receiveOne(5.seconds).asInstanceOf[SystemStatusResponse]
+      assert(answer.elevators.size == 1)
+      assert(answer.elevators(0).direction.isInstanceOf[Idle])
     }
   }
 
