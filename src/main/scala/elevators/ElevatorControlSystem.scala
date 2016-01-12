@@ -46,6 +46,7 @@ class ElevatorControlSystem(elevatorAmount: Int) extends Actor with ActorLogging
     case PickupStatusResponse(passenger: Passenger, status: List[ElevatorStatus]) =>
       // if we receive a SystemStatusResponse this must be triggered through a PickupRequest
       val bestMatch = pickBestElevatorForPickup(status)
+      log.info("picked: " + bestMatch)
       elevators.get(bestMatch).get ! PickupRequest(passenger)
   }
 

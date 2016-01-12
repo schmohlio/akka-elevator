@@ -2,7 +2,7 @@ package elevators
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
-import elevators.model.{SystemStatusResponse, Idle, ElevatorStatus, SystemStatusRequest}
+import elevators.model._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
