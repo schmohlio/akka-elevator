@@ -12,6 +12,6 @@ object Elevator {
 class Elevator(id: Int) extends Actor with ActorLogging {
 
   override def receive: Receive = {
-    case message: AnyRef => log.info("received: " + message)
+    case message: AnyRef => log.info(s"elevator $id received $message")
   }
 }

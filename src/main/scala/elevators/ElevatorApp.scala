@@ -9,7 +9,8 @@ object ElevatorApp extends App {
 
   val system = ActorSystem("MyActorSystem")
 
-  val firstElevator = system.actorOf(Elevator.props(1), "firstElevator")
-  firstElevator ! "ping"
+  // let´s have fun with 16 elevators
+  val elevatorControlSystem = system.actorOf(ElevatorControlSystem.props(16), "elevatorControlSystem")
 
+  elevatorControlSystem ! "ping"
 }
