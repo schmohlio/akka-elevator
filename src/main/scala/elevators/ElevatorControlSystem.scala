@@ -43,9 +43,17 @@ class ElevatorControlSystem(elevatorAmount: Int) extends Actor with ActorLogging
       context.actorOf(ElevatorStatusRetriever.props(sender(), elevators.values.toList, None)) ! SystemStatusRequest
     case PickupRequest(passenger: Passenger) =>
       context.actorOf(ElevatorStatusRetriever.props(self, elevators.values.toList, Option(passenger))) ! SystemStatusRequest
-    case PickupStatusResponse =>
+    case PickupStatusResponse(passenger: Passenger, status: List[ElevatorStatus]) =>
       // if we receive a SystemStatusResponse this must be triggered through a PickupRequest
-      log.info("yeahyeah")
+      val bestMatch = pickBestElevatorForPickup(status)
+      elevators.get(bestMatch).get ! PickupRequest(passenger)
+  }
+
+
+  // FIXME: currently a random elevator will be picked
+  def pickBestElevatorForPickup(statusList: List[ElevatorStatus]): Int = {
+    import scala.util.Random
+    Random.shuffle(statusList).head.id
   }
 }
 
