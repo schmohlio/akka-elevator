@@ -45,11 +45,15 @@ class Elevator(id: Int) extends Actor with ActorLogging {
       if (targets.map(passenger => passenger.targetFloor).contains(newFloor) || targets.map(passenger => passenger.startFloor).contains(newFloor)) {
         // new targets are passengers where the targetFloor is not reached
         val newTargets = targets.filter(passenger => passenger.targetFloor != newFloor)
+
+        if (newTargets.size != targets.size) {
+          log.debug("left passengers: " + targets.diff(newTargets))
+        }
         // if this is empty, relax and idle
         if (newTargets.isEmpty) {
           context become idleReceive(newFloor)
         } else {
-          log.debug("here should be a re-direction be calculated")
+          log.debug("here should a re-direction be calculated")
           // test if we reached to top or bottom
           val borderFlor = if (direction == Up) {
             List(targets.map(passenger => passenger.startFloor).max, targets.map(passenger => passenger.targetFloor).max).max
