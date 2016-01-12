@@ -41,7 +41,7 @@ class Elevator(id: Int) extends Actor with ActorLogging {
       // calculate if the elevator has to do something on the newFloor (collect or release passengers)
       if (targets.map(passenger => passenger.targetFloor).contains(newFloor) || targets.map(passenger => passenger.startFloor).contains(newFloor)) {
         // new targets are passengers where the targetFloor is not reached
-        val newTargets = targets.filter(passenger => passenger.targetFloor != currentFloor)
+        val newTargets = targets.filter(passenger => passenger.targetFloor != newFloor)
         // if this is empty, relax and idle
         if (newTargets.isEmpty) {
           context become idleReceive(newFloor)
