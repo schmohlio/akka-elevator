@@ -5,6 +5,8 @@ import akka.testkit.{ImplicitSender, TestKit}
 import elevators.model.{SystemStatusResponse, Idle, ElevatorStatus, SystemStatusRequest}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
+import scala.concurrent.duration._
+
 class ElevatorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
   with WordSpecLike with Matchers with BeforeAndAfterAll {
 
@@ -27,6 +29,8 @@ class ElevatorSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitS
       val elevatorActor = system.actorOf(ElevatorControlSystem.props(16))
       elevatorActor ! SystemStatusRequest
       expectMsgClass(classOf[SystemStatusResponse])
+      val answer = receiveOne(5.seconds).asInstanceOf[SystemStatusResponse]
+      assert(answer.elevators.size == 16)
     }
   }
 
