@@ -48,6 +48,8 @@ class ElevatorControlSystem(elevatorAmount: Int) extends Actor with ActorLogging
       val bestMatch = pickBestElevatorForPickup(status)
       log.debug("picked: " + bestMatch)
       elevators.get(bestMatch).get ! PickupRequest(passenger)
+    case Tick =>
+      elevators.values.map(elevator => Tick)
   }
 
 
