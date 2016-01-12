@@ -1,7 +1,7 @@
 package elevators
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import elevators.model.{ElevatorStatus, SystemStatusRequest, SystemStatusResponse}
+import elevators.model._
 
 import scala.collection._
 
@@ -40,15 +40,20 @@ class ElevatorControlSystem(elevatorAmount: Int) extends Actor with ActorLogging
 
   override def receive: Receive = {
     case SystemStatusRequest =>
-      context.actorOf(ElevatorStatusRetriever.props(sender(), elevators.values.toList)) ! SystemStatusRequest
+      context.actorOf(ElevatorStatusRetriever.props(sender(), elevators.values.toList, None)) ! SystemStatusRequest
+    case PickupRequest(startFloor: Int, passenger: Passenger) =>
+      context.actorOf(ElevatorStatusRetriever.props(sender(), elevators.values.toList, Option(passenger))) ! SystemStatusRequest
+    case SystemStatusResponse =>
+      // if we receive a SystemStatusResponse this must be triggered through a PickupRequest
+      log.info("yeahyeah")
   }
 }
 
 object ElevatorStatusRetriever {
-  def props(originalSender: ActorRef, elevators: List[ActorRef]): Props = Props(classOf[ElevatorStatusRetriever], originalSender, elevators)
+  def props(originalSender: ActorRef, elevators: List[ActorRef], passenger: Option[Passenger]): Props = Props(classOf[ElevatorStatusRetriever], originalSender, elevators, passenger)
 }
 
-class ElevatorStatusRetriever(originalSender: ActorRef, elevators: List[ActorRef]) extends Actor with ActorLogging {
+class ElevatorStatusRetriever(originalSender: ActorRef, elevators: List[ActorRef], passenger: Option[Passenger]) extends Actor with ActorLogging {
 
   val results = mutable.ArrayBuffer.empty[ElevatorStatus]
 
@@ -62,7 +67,11 @@ class ElevatorStatusRetriever(originalSender: ActorRef, elevators: List[ActorRef
 
   def collectStatus(force: Boolean = false) {
     if (results.size == elevators.size || force) {
-      originalSender ! SystemStatusResponse(results.toList)
+      if (passenger.isDefined) {
+        originalSender ! PickupStatusResponse(passenger.get, results.toList)
+      } else {
+        originalSender ! SystemStatusResponse(results.toList)
+      }
       context.stop(self)
     }
   }
