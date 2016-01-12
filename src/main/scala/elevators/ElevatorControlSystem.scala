@@ -54,7 +54,6 @@ class ElevatorControlSystem(elevatorAmount: Int) extends Actor with ActorLogging
 
 
   def pickBestElevatorForPickup(statusList: List[ElevatorStatus], passenger: Passenger): Int = {
-    val startFloor = passenger.startFloor
     val targetFloor = passenger.targetFloor
 
     val idlingStates = statusList.filter(state => state.direction.isInstanceOf[Idle])
