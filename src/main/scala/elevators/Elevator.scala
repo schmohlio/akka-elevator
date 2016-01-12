@@ -35,6 +35,9 @@ class Elevator(id: Int) extends Actor with ActorLogging {
     case PickupRequest(passenger: Passenger) =>
       context become moveReceive(currentFloor, targets + passenger, direction)
     case Tick =>
+      // assumption: Our elevator is traveling to the same direction until no targets are left in this direction
+      // then change direction (if needed)
+
       // floor of tick is newFloor
       val newFloor = direction.next(currentFloor)
       log.debug(s"Elevator $id is now on $newFloor with $direction")
