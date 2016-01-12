@@ -22,9 +22,10 @@ class Elevator(id: Int) extends Actor with ActorLogging {
       sender ! ElevatorStatus(id, Idle(currentFloor))
     case PickupRequest(passenger: Passenger) =>
       log.debug(s"$id is now moving")
-      context become moveReceive(currentFloor, Set(passenger), passenger.travelingDirection)
+      context become moveReceive(currentFloor, Set(passenger), Direction.direction(currentFloor, passenger.startFloor))
     case Tick =>
     // just relax and stay idling
+      log.debug(s"$id is currently idling and received Tick")
   }
 
   def moveReceive(currentFloor: Int, targets: Set[Passenger], direction: Direction): Receive = {
@@ -34,6 +35,7 @@ class Elevator(id: Int) extends Actor with ActorLogging {
     case PickupRequest(passenger: Passenger) =>
       context become moveReceive(currentFloor, targets + passenger, direction)
     case Tick =>
+      log.debug(s"Elevator $id is now on $currentFloor with $direction")
       // floor after this tick is newFloor
       val newFloor = direction.next(currentFloor)
       // calculate if the elevator has to do something on the newFloor (collect or release passengers)

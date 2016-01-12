@@ -6,17 +6,21 @@ package elevators.model
  * @author Johannes Unterstein (unterstein@me.com)
  */
 sealed abstract class Direction() {
-  abstract def next(currentFloor: Int): Int
+  def next(currentFloor: Int): Int = currentFloor // TODO why is abstract not working? .. o_O
 }
 
 // traveling upstairs
 object Up extends Direction {
-  def next(currentFloor: Int) = currentFloor + 1
+  override def next(currentFloor: Int) = currentFloor + 1
+
+  override def toString: String = "Up"
 }
 
 // traveling downstairs
 object Down extends Direction {
-  def next(currentFloor: Int) = currentFloor - 1
+  override def next(currentFloor: Int) = currentFloor - 1
+
+  override def toString: String = "Down"
 }
 
 

@@ -31,4 +31,4 @@ case class PickupStatusResponse(passenger: Passenger, elevators: List[ElevatorSt
 
 case class PickupRequest(passenger: Passenger)
 
-case class Tick
+case class Tick()
