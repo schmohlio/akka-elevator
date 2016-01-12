@@ -20,6 +20,7 @@ class Elevator(id: Int) extends Actor with ActorLogging {
     case SystemStatusRequest =>
       sender ! ElevatorStatus(id, Idle(currentFloor))
     case PickupRequest(passenger: Passenger) =>
+      log.debug("start moving")
       context become moveReceive(currentFloor, Set(passenger), passenger.travelingDirection)
   }
 
