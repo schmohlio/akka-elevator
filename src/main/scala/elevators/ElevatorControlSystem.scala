@@ -6,12 +6,16 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props}
  * An elevator control system should provide (more or less) the functionality of the following interface:
  * <pre>
  * trait ElevatorControlSystem {
- * def status(): Seq[(Int, Int, Int)] // Querying the state of the elevators (what floor are they on and where they are going),
+ * def status(): Seq[(Int, Int, Int)] // Querying the state of the elevators (what floor are they on and where they are going)
  * def update(Int, Int, Int)          // receiving an update about the status of an elevator
  * def pickup(Int, Int)               // receiving a pickup request
  * def step()                         // time-stepping the simulation
  * }
  * </pre>
+ *
+ * In this simple scenario
+ * - an elevator is represented through a triple of (elevator ID, current floor number, goal floor number)
+ * - an pickup request is represented through a tuple of (current floor number, direction (positive=up, negative=down)
  *
  * In the world of actors this should be a little bit changed...let´s see!
  *
