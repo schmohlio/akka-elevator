@@ -5,12 +5,12 @@ This project shows how to i would handle the problem of an elevator control syst
 # Implementation
 
 The implementation is done via the akka actor based framework. There are two main actor types, the Elevator actor and the
-ElevatorControlSystemActor.
+ElevatorControlSystem.
 
 # Scheduling algorithm
 
 I am not that fancy scheduling wizard, but my though about scheduling elevators was:
-- Elevators do have the same direction until there are no events (pickups or releases) are on their current direction
+- Elevators do have the same direction until there are no events (pickups or releases) on their current direction
 - Then they change their direction if there are currently passengers inside the elevator or to pickup
 - Then the procedure starts at the beginning
 
@@ -23,4 +23,4 @@ this implementation to a (hopefully) more efficient scheduling, which works as f
 The last step in this scheduling may be optimized by further development (load of elevator, other passengers, ..)
 
 # TODO
-More tests are needed for this, especially with more elevators and more pickupRequests
+More tests are needed for this, especially with more elevators and more pickup requests
