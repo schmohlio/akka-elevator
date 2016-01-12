@@ -47,7 +47,19 @@ class Elevator(id: Int) extends Actor with ActorLogging {
           context become idleReceive(newFloor)
         } else {
           log.debug("here should be a re-direction be calculated")
-          context become moveReceive(newFloor, newTargets, direction)
+          // test if we reached to top or bottom
+          val borderFlor = if (direction == Up) {
+            List(targets.map(passenger => passenger.startFloor).max, targets.map(passenger => passenger.targetFloor).max).max
+          } else {
+            List(targets.map(passenger => passenger.startFloor).min, targets.map(passenger => passenger.targetFloor).min).min
+          }
+          if (borderFlor == newFloor) {
+            // change direction
+            context become moveReceive(newFloor, newTargets, if (direction == Up) Down else Up)
+          } else {
+            // keep direction
+            context become moveReceive(newFloor, newTargets, direction)
+          }
         }
       } else {
         context become moveReceive(newFloor, targets, direction)
