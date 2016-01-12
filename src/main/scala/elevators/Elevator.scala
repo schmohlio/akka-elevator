@@ -4,6 +4,12 @@ import akka.actor.{Actor, ActorLogging, Props}
 import elevators.model._
 
 /**
+ * The actor represents the Elevator itself.
+ *
+ * The actor has two states: Idling and Moving.
+ * Depending on the actor state the behavior is a little bit different when it comes to the Tick message.
+ * This actor moves autonomously according the list of passengers inside and the list of passengers to pick up.
+ *
  * @author Johannes Unterstein (unterstein@me.com)
  */
 object Elevator {
@@ -54,6 +60,7 @@ class Elevator(id: Int) extends Actor with ActorLogging {
           log.debug(s"left passengers: $released")
         }
 
+        // calculate the newly inside passengers and the according less passengers to pick up
         val newInside = inside ++ collected -- released
         val newPickups = toPickup -- collected
 
@@ -62,11 +69,11 @@ class Elevator(id: Int) extends Actor with ActorLogging {
           context become idleReceive(newFloor)
         } else {
           log.debug("here should a re-direction be calculated")
-          // test if we reached to top or bottom
+          // test if we reached to top or bottom of our current working queue.
           val borderFlor = if (direction == Up) {
-            calcMax(newInside, newPickups)
+            calcMaxFloorToReach(newInside, newPickups)
           } else {
-            calcMin(newInside, newPickups)
+            calcMinFloorToReach(newInside, newPickups)
           }
           // if the elevator is traveling upstairs, there should no activities above to change direction and vice versa
           if ((direction == Up && borderFlor <= newFloor) || (direction == Down && borderFlor >= newFloor)) {
@@ -82,7 +89,7 @@ class Elevator(id: Int) extends Actor with ActorLogging {
       }
   }
 
-  private def calcMin(inside: Set[Passenger], pickups: Set[Passenger]): Int = {
+  private def calcMinFloorToReach(inside: Set[Passenger], pickups: Set[Passenger]): Int = {
     // situation where both are empty can not occur
     if (inside.isEmpty) {
       pickups.map(passenger => passenger.startFloor).min
@@ -93,7 +100,7 @@ class Elevator(id: Int) extends Actor with ActorLogging {
     }
   }
 
-  private def calcMax(inside: Set[Passenger], pickups: Set[Passenger]): Int = {
+  private def calcMaxFloorToReach(inside: Set[Passenger], pickups: Set[Passenger]): Int = {
     if (inside.isEmpty) {
       pickups.map(passenger => passenger.startFloor).max
     } else if (pickups.isEmpty) {
