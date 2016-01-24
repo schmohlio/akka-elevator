@@ -70,13 +70,11 @@ class Elevator(id: Int) extends Actor with ActorLogging {
         } else {
           log.debug("here should a re-direction be calculated")
           // test if we reached to top or bottom of our current working queue.
-          val borderFlor = if (direction == Up) {
-            calcMaxFloorToReach(newInside, newPickups)
-          } else {
-            calcMinFloorToReach(newInside, newPickups)
-          }
+          val floors = newPickups.map(passenger => passenger.startFloor) ++ newInside.map(passenger => passenger.targetFloor)
+          val borderReached = if (direction == Up) floors.max <= newFloor else floors.min >= newFloor
+
           // if the elevator is traveling upstairs, there should no activities above to change direction and vice versa
-          if ((direction == Up && borderFlor <= newFloor) || (direction == Down && borderFlor >= newFloor)) {
+          if (borderReached) {
             // change direction
             context become moveReceive(newFloor, newInside, newPickups, if (direction == Up) Down else Up)
           } else {
@@ -89,24 +87,4 @@ class Elevator(id: Int) extends Actor with ActorLogging {
       }
   }
 
-  private def calcMinFloorToReach(inside: Set[Passenger], pickups: Set[Passenger]): Int = {
-    // situation where both are empty can not occur
-    if (inside.isEmpty) {
-      pickups.map(passenger => passenger.startFloor).min
-    } else if (pickups.isEmpty) {
-      inside.map(passenger => passenger.targetFloor).min
-    } else {
-      List(pickups.map(passenger => passenger.startFloor).min, inside.map(passenger => passenger.targetFloor).min).min
-    }
-  }
-
-  private def calcMaxFloorToReach(inside: Set[Passenger], pickups: Set[Passenger]): Int = {
-    if (inside.isEmpty) {
-      pickups.map(passenger => passenger.startFloor).max
-    } else if (pickups.isEmpty) {
-      inside.map(passenger => passenger.targetFloor).max
-    } else {
-      List(pickups.map(passenger => passenger.startFloor).max, inside.map(passenger => passenger.targetFloor).max).max
-    }
-  }
 }
