@@ -48,42 +48,38 @@ class Elevator(id: Int) extends Actor with ActorLogging {
       val newFloor = direction.next(currentFloor)
       log.debug(s"Elevator $id is now on $newFloor with $direction and inside $inside and toPickup $toPickup")
       // calculate if the elevator has to do something on the newFloor (collect or release passengers)
-      if (inside.map(passenger => passenger.targetFloor).contains(newFloor) || toPickup.map(passenger => passenger.startFloor).contains(newFloor)) {
 
-        // collected passengers
-        val collected = toPickup.filter(passenger => passenger.startFloor == newFloor)
-        if (collected.size > 0) {
-          log.debug(s"joined passengers: $collected")
-        }
-        val released = inside.filter(passenger => passenger.targetFloor == newFloor)
-        if (released.size > 0) {
-          log.debug(s"left passengers: $released")
-        }
+      // collected passengers
+      val collected = toPickup.filter(passenger => passenger.startFloor == newFloor)
+      if (collected.size > 0) {
+        log.debug(s"joined passengers: $collected")
+      }
+      val released = inside.filter(passenger => passenger.targetFloor == newFloor)
+      if (released.size > 0) {
+        log.debug(s"left passengers: $released")
+      }
 
-        // calculate the newly inside passengers and the according less passengers to pick up
-        val newInside = inside ++ collected -- released
-        val newPickups = toPickup -- collected
+      // calculate the newly inside passengers and the according less passengers to pick up
+      val newInside = inside ++ collected -- released
+      val newPickups = toPickup -- collected
 
-        // if this is empty, relax and idle
-        if (newInside.isEmpty && newPickups.isEmpty) {
-          context become idleReceive(newFloor)
-        } else {
-          log.debug("here should a re-direction be calculated")
-          // test if we reached to top or bottom of our current working queue.
-          val floors = newPickups.map(passenger => passenger.startFloor) ++ newInside.map(passenger => passenger.targetFloor)
-          val borderReached = if (direction == Up) floors.max <= newFloor else floors.min >= newFloor
-
-          // if the elevator is traveling upstairs, there should no activities above to change direction and vice versa
-          if (borderReached) {
-            // change direction
-            context become moveReceive(newFloor, newInside, newPickups, if (direction == Up) Down else Up)
-          } else {
-            // keep direction
-            context become moveReceive(newFloor, newInside, newPickups, direction)
-          }
-        }
+      // if this is empty, relax and idle
+      if (newInside.isEmpty && newPickups.isEmpty) {
+        context become idleReceive(newFloor)
       } else {
-        context become moveReceive(newFloor, inside, toPickup, direction)
+        log.debug("here should a re-direction be calculated")
+        // test if we reached to top or bottom of our current working queue.
+        val floors = newPickups.map(passenger => passenger.startFloor) ++ newInside.map(passenger => passenger.targetFloor)
+        val borderReached = if (direction == Up) floors.max <= newFloor else floors.min >= newFloor
+
+        // if the elevator is traveling upstairs, there should no activities above to change direction and vice versa
+        if (borderReached) {
+          // change direction
+          context become moveReceive(newFloor, newInside, newPickups, if (direction == Up) Down else Up)
+        } else {
+          // keep direction
+          context become moveReceive(newFloor, newInside, newPickups, direction)
+        }
       }
   }
 
