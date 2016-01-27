@@ -30,7 +30,12 @@ class Elevator(id: Int) extends Actor with ActorLogging {
       sender ! ElevatorStatus(id, Idle(currentFloor))
     case PickupRequest(passenger: Passenger) =>
       log.debug(s"$id is now moving")
-      context become moveReceive(currentFloor, Set(), Set(passenger), Direction.direction(currentFloor, passenger.startFloor))
+      if (passenger.startFloor == currentFloor) {
+        // hey, that`s great, we are on the correct floor to pickup the passenger! Let` instant collect the passenger
+        context become moveReceive(currentFloor, Set(passenger), Set(), Direction.direction(currentFloor, passenger.startFloor))
+      } else {
+        context become moveReceive(currentFloor, Set(), Set(passenger), Direction.direction(currentFloor, passenger.startFloor))
+      }
     case Tick =>
       // just relax and stay idling
       log.debug(s"$id is currently idling and received Tick")
