@@ -6,7 +6,7 @@ package elevators.model
  *
  * @author Johannes Unterstein (unterstein@me.com)
  */
-case class Passenger(startFloor: Int, targetFloor: Int) { // TODO case class -> unique id
+case class Passenger(startFloor: Int, targetFloor: Int, passengerId: String = java.util.UUID.randomUUID.toString) {
 
   val travelingDirection: Direction = Direction.direction(startFloor, targetFloor)
 }
