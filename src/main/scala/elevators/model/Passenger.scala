@@ -6,7 +6,7 @@ package elevators.model
  *
  * @author Johannes Unterstein (unterstein@me.com)
  */
-case class Passenger(startFloor: Int, targetFloor: Int) {
+case class Passenger(startFloor: Int, targetFloor: Int) { // TODO case class -> unique id
 
   val travelingDirection: Direction = Direction.direction(startFloor, targetFloor)
 }

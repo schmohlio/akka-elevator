@@ -14,6 +14,8 @@ import elevators.model._
  */
 object Elevator {
   def props(elevatorId: Int): Props = Props(classOf[Elevator], elevatorId)
+
+  // TODO declare known messages in object
 }
 
 class Elevator(id: Int) extends Actor with ActorLogging {

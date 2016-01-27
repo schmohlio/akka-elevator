@@ -27,6 +27,7 @@ class ElevatorSystemMultiPickupSpec(_system: ActorSystem) extends TestKit(_syste
         i =>
           elevatorControlSystemActor ! Tick
       }
+      // TODO verification of result
     }
   }
 

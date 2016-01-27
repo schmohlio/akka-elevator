@@ -19,6 +19,7 @@ class ElevatorSystemPickupSpec(_system: ActorSystem) extends TestKit(_system) wi
     "react to PickupRequest" in {
       val elevatorControlSystemActor = system.actorOf(ElevatorControlSystem.props(1))
       elevatorControlSystemActor ! PickupRequest(Passenger(10, 0))
+      // TODO move sleep to ask pattern (future)
       Thread.sleep(1000) // wait a second until PickupRequest is scheduled
       (0 to 20).foreach {
         i =>

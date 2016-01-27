@@ -23,6 +23,7 @@ class ElevatorSystemLoadSpec(_system: ActorSystem) extends TestKit(_system) with
       scheduleSomeRequests(elevatorControlSystemActor)
       scheduleSomeTicks(elevatorControlSystemActor)
       scheduleSomeTicks(elevatorControlSystemActor)
+      // TODO verification
     }
   }
 
