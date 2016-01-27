@@ -27,8 +27,22 @@ case class SystemStatusResponse(elevators: List[ElevatorStatus])
 case class ElevatorStatus(id: Int, direction: ElevatorBehavior)
 
 
+/**
+ * Representing a response for a PickupRequest, including all ElevatorStatus.
+ *
+ * @param passenger the passenger for the PickupRequest
+ * @param elevators the list of status of all Elevators
+ */
 case class PickupStatusResponse(passenger: Passenger, elevators: List[ElevatorStatus])
 
+/**
+ * Representing the request for picking up a Passenger
+ *
+ * @param passenger the Passenger who wants to be picked up
+ */
 case class PickupRequest(passenger: Passenger)
 
+/**
+ * The Tick, simulating one time unit in this simulation
+ */
 case class Tick()

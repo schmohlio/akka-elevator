@@ -3,8 +3,21 @@ package elevators.model
 /**
  * @author Johannes Unterstein (unterstein@me.com)
  */
-sealed trait ElevatorBehavior
+sealed trait ElevatorBehavior {
+  val currentFloor: Int
+}
 
-case class Idle(id: Int, currentFloor: Int) extends ElevatorBehavior
+/**
+ * Representing that the according Elevator is idling.
+ *
+ * @param currentFloor the floor number where the Elevator idles
+ */
+case class Idle(currentFloor: Int) extends ElevatorBehavior
 
-case class Moving(id: Int, currentFloor: Int, direction: Direction) extends ElevatorBehavior
+/**
+ * Representing that the according Elevator is Moving.
+ *
+ * @param currentFloor the current floor number of the Elevator
+ * @param direction the traveling direction
+ */
+case class Moving(currentFloor: Int, direction: Direction) extends ElevatorBehavior

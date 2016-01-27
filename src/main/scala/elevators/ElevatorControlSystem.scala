@@ -73,20 +73,37 @@ class ElevatorControlSystem(elevatorAmount: Int) extends Actor with ActorLogging
     }
   }
 
+  /**
+   * The method picks the nearest elevator id according to the given floor number. The strategy is:
+   * - make a map of elevatorId -> distance to floor
+   * - sort this map according the distance
+   * - return first elevator id of this sorted lsit
+   *
+   * @param currentFloor floor number to check
+   * @param statusList list of elevator status
+   * @return nearest elevator id
+   */
   private def pickNearest(currentFloor: Int, statusList: List[ElevatorStatus]): Int = {
-    val tuples = statusList.map(status => {
-      val idle = status.direction.asInstanceOf[Idle]
-      idle.id -> Math.abs(idle.currentFloor - currentFloor)
-    }).toMap
-    val min = tuples.values.min
-    tuples.filter(p => p._2 == min).keys.toList(0)
+    statusList.map(status => {
+      status.id -> Math.abs(status.direction.currentFloor - currentFloor)
+    }).sortBy(_._2).toList(0)._1
   }
 }
 
+/**
+ * ElevatorStatusRetriever object for using props method statically.
+ */
 object ElevatorStatusRetriever {
   def props(originalSender: ActorRef, elevators: List[ActorRef], passenger: Option[Passenger]): Props = Props(classOf[ElevatorStatusRetriever], originalSender, elevators, passenger)
 }
 
+/**
+ * Intended to use the akka aggregation pattern, this Actor gathers the status for all Elevators and returns it as list to the original sender.
+ *
+ * @param originalSender the sender, which sends the StatusRequest to the ElevatorControlSystem
+ * @param elevators the Elevators to be asked for status
+ * @param passenger optional Passenger, if not None, indicating if the initial request was a PickupRequest
+ */
 class ElevatorStatusRetriever(originalSender: ActorRef, elevators: List[ActorRef], passenger: Option[Passenger]) extends Actor with ActorLogging {
 
   val results = mutable.ArrayBuffer.empty[ElevatorStatus]

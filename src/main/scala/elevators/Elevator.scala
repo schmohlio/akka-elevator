@@ -4,6 +4,12 @@ import akka.actor.{Actor, ActorLogging, Props}
 import elevators.model._
 
 /**
+ * The actor represents the Elevator itself.
+ *
+ * The actor has two states: Idling and Moving.
+ * Depending on the actor state the behavior is a little bit different when it comes to the Tick message.
+ * This actor moves autonomously according the list of passengers inside and the list of passengers to pick up.
+ *
  * @author Johannes Unterstein (unterstein@me.com)
  */
 object Elevator {
@@ -19,7 +25,7 @@ class Elevator(id: Int) extends Actor with ActorLogging {
     // what messages can be received if an elevator is idling? -> StatusRequest and PickUpRequests
     case SystemStatusRequest =>
       log.debug(s"$id is currently idling")
-      sender ! ElevatorStatus(id, Idle(id, currentFloor))
+      sender ! ElevatorStatus(id, Idle(currentFloor))
     case PickupRequest(passenger: Passenger) =>
       log.debug(s"$id is now moving")
       context become moveReceive(currentFloor, Set(), Set(passenger), Direction.direction(currentFloor, passenger.startFloor))
@@ -31,7 +37,7 @@ class Elevator(id: Int) extends Actor with ActorLogging {
   def moveReceive(currentFloor: Int, inside: Set[Passenger], toPickup: Set[Passenger], direction: Direction): Receive = {
     // what messages can be received if an elevator is idling? -> StatusRequest and PickUpRequests
     case SystemStatusRequest =>
-      sender ! ElevatorStatus(id, Moving(id, currentFloor, direction))
+      sender ! ElevatorStatus(id, Moving(currentFloor, direction))
     case PickupRequest(passenger: Passenger) =>
       context become moveReceive(currentFloor, inside, toPickup + passenger, direction)
     case Tick =>
@@ -42,64 +48,39 @@ class Elevator(id: Int) extends Actor with ActorLogging {
       val newFloor = direction.next(currentFloor)
       log.debug(s"Elevator $id is now on $newFloor with $direction and inside $inside and toPickup $toPickup")
       // calculate if the elevator has to do something on the newFloor (collect or release passengers)
-      if (inside.map(passenger => passenger.targetFloor).contains(newFloor) || toPickup.map(passenger => passenger.startFloor).contains(newFloor)) {
 
-        // collected passengers
-        val collected = toPickup.filter(passenger => passenger.startFloor == newFloor)
-        if (collected.size > 0) {
-          log.debug(s"joined passengers: $collected")
-        }
-        val released = inside.filter(passenger => passenger.targetFloor == newFloor)
-        if (released.size > 0) {
-          log.debug(s"left passengers: $released")
-        }
+      // collected passengers
+      val collected = toPickup.filter(passenger => passenger.startFloor == newFloor)
+      if (collected.size > 0) {
+        log.debug(s"joined passengers: $collected")
+      }
+      val released = inside.filter(passenger => passenger.targetFloor == newFloor)
+      if (released.size > 0) {
+        log.debug(s"left passengers: $released")
+      }
 
-        val newInside = inside ++ collected -- released
-        val newPickups = toPickup -- collected
+      // calculate the newly inside passengers and the according less passengers to pick up
+      val newInside = inside ++ collected -- released
+      val newPickups = toPickup -- collected
 
-        // if this is empty, relax and idle
-        if (newInside.isEmpty && newPickups.isEmpty) {
-          context become idleReceive(newFloor)
-        } else {
-          log.debug("here should a re-direction be calculated")
-          // test if we reached to top or bottom
-          val borderFlor = if (direction == Up) {
-            calcMax(newInside, newPickups)
-          } else {
-            calcMin(newInside, newPickups)
-          }
-          // if the elevator is traveling upstairs, there should no activities above to change direction and vice versa
-          if ((direction == Up && borderFlor <= newFloor) || (direction == Down && borderFlor >= newFloor)) {
-            // change direction
-            context become moveReceive(newFloor, newInside, newPickups, if (direction == Up) Down else Up)
-          } else {
-            // keep direction
-            context become moveReceive(newFloor, newInside, newPickups, direction)
-          }
-        }
+      // if this is empty, relax and idle
+      if (newInside.isEmpty && newPickups.isEmpty) {
+        context become idleReceive(newFloor)
       } else {
-        context become moveReceive(newFloor, inside, toPickup, direction)
+        log.debug("here should a re-direction be calculated")
+        // test if we reached to top or bottom of our current working queue.
+        val floors = newPickups.map(passenger => passenger.startFloor) ++ newInside.map(passenger => passenger.targetFloor)
+        val borderReached = if (direction == Up) floors.max <= newFloor else floors.min >= newFloor
+
+        // if the elevator is traveling upstairs, there should no activities above to change direction and vice versa
+        if (borderReached) {
+          // change direction
+          context become moveReceive(newFloor, newInside, newPickups, if (direction == Up) Down else Up)
+        } else {
+          // keep direction
+          context become moveReceive(newFloor, newInside, newPickups, direction)
+        }
       }
   }
 
-  private def calcMin(inside: Set[Passenger], pickups: Set[Passenger]): Int = {
-    // situation where both are empty can not occur
-    if (inside.isEmpty) {
-      pickups.map(passenger => passenger.startFloor).min
-    } else if (pickups.isEmpty) {
-      inside.map(passenger => passenger.targetFloor).min
-    } else {
-      List(pickups.map(passenger => passenger.startFloor).min, inside.map(passenger => passenger.targetFloor).min).min
-    }
-  }
-
-  private def calcMax(inside: Set[Passenger], pickups: Set[Passenger]): Int = {
-    if (inside.isEmpty) {
-      pickups.map(passenger => passenger.startFloor).max
-    } else if (pickups.isEmpty) {
-      inside.map(passenger => passenger.targetFloor).max
-    } else {
-      List(pickups.map(passenger => passenger.startFloor).max, inside.map(passenger => passenger.targetFloor).max).max
-    }
-  }
 }
