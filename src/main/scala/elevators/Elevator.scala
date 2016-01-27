@@ -74,7 +74,6 @@ class Elevator(id: Int) extends Actor with ActorLogging {
       if (newInside.isEmpty && newPickups.isEmpty) {
         context become idleReceive(newFloor)
       } else {
-        log.debug("here should a re-direction be calculated")
         // test if we reached to top or bottom of our current working queue.
         val floors = newPickups.map(passenger => passenger.startFloor) ++ newInside.map(passenger => passenger.targetFloor)
         val borderReached = if (direction == Up) floors.max <= newFloor else floors.min >= newFloor
